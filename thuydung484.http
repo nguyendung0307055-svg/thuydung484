@@ -1,0 +1,6 @@
+@thuydung484_HostAddress = http://localhost:5182
+
+GET {{thuydung484_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
