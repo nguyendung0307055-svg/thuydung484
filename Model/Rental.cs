@@ -36,9 +36,9 @@ namespace thuydung484.Model
 
         // Navigation properties (quan hệ)
         [ForeignKey("customer_id")]
-        public Customer Customer { get; set; }
+        public Customer? Customer { get; set; }
 
         [ForeignKey("vehicle_id")]
-        public Vehicle Vehicle { get; set; }
+        public Vehicle? Vehicle { get; set; }
     }
 }
