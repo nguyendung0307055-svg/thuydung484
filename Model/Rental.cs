@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 
 namespace thuydung484.Model
 {
@@ -40,5 +41,8 @@ namespace thuydung484.Model
 
         [ForeignKey("vehicle_id")]
         public Vehicle? Vehicle { get; set; }
+        public ICollection<Penalty>? Penalties { get; set; }
+
+        public Rental_Detail? Rental_Detail { get; set; }
     }
 }

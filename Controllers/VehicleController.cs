@@ -23,7 +23,11 @@ namespace thuydung484.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Vehicle>>> GetVehicles()
         {
-            return await _context.Vehicles.ToListAsync();
+            var vehicles = await _context.Vehicles
+                .Include(v => v.Branch)
+                .ToListAsync();
+
+            return Ok(vehicles);
         }
 
         // =========================================
@@ -34,6 +38,7 @@ namespace thuydung484.Controllers
         public async Task<ActionResult<Vehicle>> GetVehicle(int id)
         {
             var vehicle = await _context.Vehicles
+                .Include(v => v.Branch)
                 .FirstOrDefaultAsync(v => v.Id == id);
 
             if (vehicle == null)
@@ -52,6 +57,7 @@ namespace thuydung484.Controllers
         public async Task<ActionResult<IEnumerable<Vehicle>>> GetAvailableVehicles()
         {
             var vehicles = await _context.Vehicles
+                .Include(v => v.Branch)
                 .Where(v => v.status == "Available")
                 .ToListAsync();
 
@@ -67,12 +73,20 @@ namespace thuydung484.Controllers
         {
             // Kiểm tra trùng biển số
             var exists = await _context.Vehicles
-                .FirstOrDefaultAsync(v =>
-                    v.license_plate == vehicle.license_plate);
+                .AnyAsync(v => v.license_plate == vehicle.license_plate);
 
-            if (exists != null)
+            if (exists)
             {
                 return BadRequest("Biển số đã tồn tại");
+            }
+
+            // Kiểm tra Branch tồn tại
+            var branchExists = await _context.Branches
+                .AnyAsync(b => b.id == vehicle.branch_id);
+
+            if (!branchExists)
+            {
+                return BadRequest("Chi nhánh không tồn tại");
             }
 
             // Default status
@@ -112,6 +126,15 @@ namespace thuydung484.Controllers
                 return NotFound("Không tìm thấy xe");
             }
 
+            // Kiểm tra Branch tồn tại
+            var branchExists = await _context.Branches
+                .AnyAsync(b => b.id == vehicle.branch_id);
+
+            if (!branchExists)
+            {
+                return BadRequest("Chi nhánh không tồn tại");
+            }
+
             // Update dữ liệu
             existingVehicle.license_plate =
                 vehicle.license_plate;
@@ -127,6 +150,9 @@ namespace thuydung484.Controllers
 
             existingVehicle.status =
                 vehicle.status;
+
+            existingVehicle.branch_id =
+                vehicle.branch_id;
 
             await _context.SaveChangesAsync();
 

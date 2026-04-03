@@ -26,6 +26,8 @@ namespace thuydung484.Controllers
             var rentals = await _context.Rentals
                 .Include(r => r.Customer)
                 .Include(r => r.Vehicle)
+                .Include(r => r.Penalties)
+                .Include(r => r.Rental_Detail)
                 .ToListAsync();
 
             return Ok(rentals);
@@ -41,6 +43,8 @@ namespace thuydung484.Controllers
             var rental = await _context.Rentals
                 .Include(r => r.Customer)
                 .Include(r => r.Vehicle)
+                .Include(r => r.Penalties)
+                .Include(r => r.Rental_Detail)
                 .FirstOrDefaultAsync(r => r.id == id);
 
             if (rental == null)
@@ -58,6 +62,15 @@ namespace thuydung484.Controllers
         [HttpPost]
         public async Task<ActionResult> CreateRental(Rental rental)
         {
+            // Kiểm tra Customer tồn tại
+            var customerExists = await _context.Customers
+                .AnyAsync(c => c.id == rental.customer_id);
+
+            if (!customerExists)
+            {
+                return BadRequest("Khách hàng không tồn tại");
+            }
+
             // Kiểm tra xe tồn tại
             var vehicle = await _context.Vehicles
                 .FirstOrDefaultAsync(v => v.Id == rental.vehicle_id);
@@ -82,6 +95,12 @@ namespace thuydung484.Controllers
             if (activeRental != null)
             {
                 return BadRequest("Xe đang được thuê");
+            }
+
+            // Set thời gian bắt đầu nếu chưa có
+            if (rental.start_time == default)
+            {
+                rental.start_time = DateTime.Now;
             }
 
             // Set trạng thái hợp đồng
@@ -110,6 +129,7 @@ namespace thuydung484.Controllers
         {
             var rental = await _context.Rentals
                 .Include(r => r.Vehicle)
+                .Include(r => r.Rental_Detail)
                 .FirstOrDefaultAsync(r => r.id == id);
 
             if (rental == null)

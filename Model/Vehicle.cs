@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 
 namespace thuydung484.Model
 {
@@ -27,5 +28,16 @@ namespace thuydung484.Model
         [Required]
         [StringLength(20)]
         public string status { get; set; }  // Available / Rented / Maintenance
+
+        // FK Branch
+        [Required]
+        public int branch_id { get; set; }
+
+        [ForeignKey("branch_id")]
+        public Branch? Branch { get; set; }
+
+        public ICollection<Vehicle_Image>? Vehicle_Images { get; set; }
+
+        public ICollection<VehicleMaintenance>? VehicleMaintenances { get; set; }
     }
 }
