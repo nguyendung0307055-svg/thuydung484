@@ -9,7 +9,6 @@ namespace thuydung484
         {
             var builder = WebApplication.CreateBuilder(args);
 
-
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(
                     builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -21,11 +20,10 @@ namespace thuydung484
 
             var app = builder.Build();
 
-            // ⚠️ BỎ điều kiện Development
             app.UseSwagger();
             app.UseSwaggerUI();
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseAuthorization();
 
