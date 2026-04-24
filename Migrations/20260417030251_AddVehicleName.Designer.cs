@@ -4,6 +4,7 @@ using ConnectDB.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace thuydung484.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260417030251_AddVehicleName")]
+    partial class AddVehicleName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -91,19 +94,8 @@ namespace thuydung484.Migrations
 
                     b.Property<string>("cccd")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("license_expiry")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("license_number")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("license_type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("name")
                         .IsRequired()
@@ -112,7 +104,8 @@ namespace thuydung484.Migrations
 
                     b.Property<string>("phone")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
 
                     b.HasKey("id");
 
@@ -240,14 +233,16 @@ namespace thuydung484.Migrations
 
                     b.Property<string>("rent_type")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<DateTime>("start_time")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("status")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<decimal?>("total_amount")
                         .HasColumnType("decimal(10,2)");
@@ -375,12 +370,10 @@ namespace thuydung484.Migrations
                     b.Property<int>("branch_id")
                         .HasColumnType("int");
 
-                    b.Property<int>("engine_capacity")
-                        .HasColumnType("int");
-
                     b.Property<string>("license_plate")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("name")
                         .IsRequired()
@@ -395,16 +388,17 @@ namespace thuydung484.Migrations
 
                     b.Property<string>("status")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
-                    b.Property<int>("vehicle_type_id")
-                        .HasColumnType("int");
+                    b.Property<string>("type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("branch_id");
-
-                    b.HasIndex("vehicle_type_id");
 
                     b.ToTable("Vehicles");
                 });
@@ -452,31 +446,6 @@ namespace thuydung484.Migrations
                     b.HasIndex("vehicle_id");
 
                     b.ToTable("Vehicle_Maintenance");
-                });
-
-            modelBuilder.Entity("thuydung484.Model.VehicleType", b =>
-                {
-                    b.Property<int>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
-
-                    b.Property<string>("description")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<bool>("is_active")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("id");
-
-                    b.ToTable("VehicleTypes");
                 });
 
             modelBuilder.Entity("thuydung484.Model.Vehicle_Image", b =>
@@ -634,15 +603,7 @@ namespace thuydung484.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("thuydung484.Model.VehicleType", "VehicleType")
-                        .WithMany("Vehicles")
-                        .HasForeignKey("vehicle_type_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Branch");
-
-                    b.Navigation("VehicleType");
                 });
 
             modelBuilder.Entity("thuydung484.Model.VehicleMaintenance", b =>
@@ -722,11 +683,6 @@ namespace thuydung484.Migrations
                     b.Navigation("VehicleMaintenances");
 
                     b.Navigation("Vehicle_Images");
-                });
-
-            modelBuilder.Entity("thuydung484.Model.VehicleType", b =>
-                {
-                    b.Navigation("Vehicles");
                 });
 #pragma warning restore 612, 618
         }

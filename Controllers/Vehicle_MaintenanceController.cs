@@ -40,16 +40,27 @@ namespace thuydung484.Controllers
         }
 
         // CREATE
+        // CREATE: Tự động chuyển xe sang trạng thái 'Maintenance'
         [HttpPost]
         public async Task<ActionResult<VehicleMaintenance>> Create(VehicleMaintenance item)
         {
             try
             {
+                // 1. Tìm xe và cập nhật trạng thái xe sang Maintenance
+                var vehicle = await _context.Vehicles.FindAsync(item.vehicle_id);
+                if (vehicle != null)
+                {
+                    vehicle.status = "Maintenance";
+                }
+
+                // 2. Thiết lập dữ liệu mặc định cho bản ghi bảo trì
+                item.created_at = DateTime.Now;
+                if (string.IsNullOrEmpty(item.status)) item.status = "InProgress";
+
                 _context.Vehicle_Maintenances.Add(item);
                 await _context.SaveChangesAsync();
 
-                return CreatedAtAction(nameof(GetById),
-                    new { id = item.id }, item);
+                return CreatedAtAction(nameof(GetById), new { id = item.id }, item);
             }
             catch (Exception ex)
             {
@@ -57,20 +68,34 @@ namespace thuydung484.Controllers
             }
         }
 
-        // UPDATE
+        // UPDATE: Nếu bảo trì 'Completed', tự động chuyển xe về 'Available'
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, VehicleMaintenance item)
         {
-            if (id != item.id)
-                return BadRequest();
+            if (id != item.id) return BadRequest();
 
-            _context.Entry(item).State = EntityState.Modified;
+            try
+            {
+                _context.Entry(item).State = EntityState.Modified;
 
-            await _context.SaveChangesAsync();
+                // Nếu trạng thái bảo trì chuyển sang hoàn thành, trả xe về trạng thái sẵn sàng
+                if (item.status == "Completed")
+                {
+                    var vehicle = await _context.Vehicles.FindAsync(item.vehicle_id);
+                    if (vehicle != null)
+                    {
+                        vehicle.status = "Available";
+                    }
+                }
 
-            return NoContent();
+                await _context.SaveChangesAsync();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
-
         // DELETE
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)

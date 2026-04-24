@@ -8,14 +8,20 @@ namespace thuydung484.Model
     {
         [Key]
         public int Id { get; set; }  // Primary Key
-
         [Required]
-        [StringLength(20)]
-        public string license_plate { get; set; }  // Biển số xe (unique)
-
+        [StringLength(100)]
+        public string name { get; set; }
         [Required]
-        [StringLength(50)]
-        public string type { get; set; }  // Loại xe
+        [RegularExpression(@"^[0-9A-Z-]+$",
+            ErrorMessage = "Biển số không hợp lệ")]
+        public string license_plate { get; set; }
+        [Required]
+        public int vehicle_type_id { get; set; }
+
+        [ForeignKey("vehicle_type_id")]
+        public VehicleType? VehicleType { get; set; }
+        [Required]
+        public int engine_capacity { get; set; } // Dung tích động cơ (cc)
 
         [Required]
         [Column(TypeName = "decimal(10,2)")]
@@ -26,9 +32,9 @@ namespace thuydung484.Model
         public decimal price_per_day { get; set; }  // Giá theo ngày
 
         [Required]
-        [StringLength(20)]
-        public string status { get; set; }  // Available / Rented / Maintenance
-
+        [RegularExpression("^(Available|Rented|Maintenance)$",
+            ErrorMessage = "Status phải là Available / Rented / Maintenance")]
+        public string status { get; set; }
         // FK Branch
         [Required]
         public int branch_id { get; set; }
@@ -39,5 +45,6 @@ namespace thuydung484.Model
         public ICollection<Vehicle_Image>? Vehicle_Images { get; set; }
 
         public ICollection<VehicleMaintenance>? VehicleMaintenances { get; set; }
+
     }
 }

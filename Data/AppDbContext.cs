@@ -21,7 +21,7 @@ public class AppDbContext : DbContext
     public DbSet<Rental_Detail> Rental_Details { get; set; }
     public DbSet<Payment_Log> Payment_Logs { get; set; }
     public DbSet<Penalty> Penalties { get; set; }
-
+    public DbSet<VehicleType> VehicleTypes { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

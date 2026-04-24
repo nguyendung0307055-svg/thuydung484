@@ -17,9 +17,8 @@ namespace thuydung484.Model
         public int vehicle_id { get; set; }  // FK -> Vehicle
 
         [Required]
-        [StringLength(10)]
-        public string rent_type { get; set; }  // HOUR / DAY
-
+        [RegularExpression("^(HOUR|DAY)$", ErrorMessage = "Chỉ được HOUR hoặc DAY")]
+        public string rent_type { get; set; }
         [Required]
         public DateTime start_time { get; set; }  // Bắt đầu thuê
 
@@ -30,11 +29,9 @@ namespace thuydung484.Model
 
         [Column(TypeName = "decimal(10,2)")]
         public decimal? total_amount { get; set; }  // Tổng tiền
-
         [Required]
-        [StringLength(20)]
-        public string status { get; set; }  // Active / Completed / Cancelled
-
+        [RegularExpression("^(Active|Completed|Cancelled)$", ErrorMessage = "Status không hợp lệ")]
+        public string? status { get; set; }
         // Navigation properties (quan hệ)
         [ForeignKey("customer_id")]
         public Customer? Customer { get; set; }

@@ -4,6 +4,7 @@ using ConnectDB.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace thuydung484.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260423022118_Init")]
+    partial class Init
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -397,14 +400,14 @@ namespace thuydung484.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("vehicle_type_id")
-                        .HasColumnType("int");
+                    b.Property<string>("type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("branch_id");
-
-                    b.HasIndex("vehicle_type_id");
 
                     b.ToTable("Vehicles");
                 });
@@ -452,31 +455,6 @@ namespace thuydung484.Migrations
                     b.HasIndex("vehicle_id");
 
                     b.ToTable("Vehicle_Maintenance");
-                });
-
-            modelBuilder.Entity("thuydung484.Model.VehicleType", b =>
-                {
-                    b.Property<int>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
-
-                    b.Property<string>("description")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<bool>("is_active")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("id");
-
-                    b.ToTable("VehicleTypes");
                 });
 
             modelBuilder.Entity("thuydung484.Model.Vehicle_Image", b =>
@@ -634,15 +612,7 @@ namespace thuydung484.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("thuydung484.Model.VehicleType", "VehicleType")
-                        .WithMany("Vehicles")
-                        .HasForeignKey("vehicle_type_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Branch");
-
-                    b.Navigation("VehicleType");
                 });
 
             modelBuilder.Entity("thuydung484.Model.VehicleMaintenance", b =>
@@ -722,11 +692,6 @@ namespace thuydung484.Migrations
                     b.Navigation("VehicleMaintenances");
 
                     b.Navigation("Vehicle_Images");
-                });
-
-            modelBuilder.Entity("thuydung484.Model.VehicleType", b =>
-                {
-                    b.Navigation("Vehicles");
                 });
 #pragma warning restore 612, 618
         }

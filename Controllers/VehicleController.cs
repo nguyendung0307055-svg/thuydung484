@@ -16,87 +16,91 @@ namespace thuydung484.Controllers
             _context = context;
         }
 
-        // =========================================
-        // GET: api/vehicle
-        // Lấy tất cả xe
-        // =========================================
+        // ================= GET ALL =================
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Vehicle>>> GetVehicles()
         {
             var vehicles = await _context.Vehicles
                 .Include(v => v.Branch)
+                .Include(v => v.VehicleType)
+                .Include(v => v.Vehicle_Images) // 🔥 thêm
                 .ToListAsync();
 
             return Ok(vehicles);
         }
 
-        // =========================================
-        // GET: api/vehicle/5
-        // Lấy 1 xe theo ID
-        // =========================================
+        // ================= GET BY ID =================
         [HttpGet("{id}")]
         public async Task<ActionResult<Vehicle>> GetVehicle(int id)
         {
             var vehicle = await _context.Vehicles
                 .Include(v => v.Branch)
+                .Include(v => v.VehicleType)
+                .Include(v => v.Vehicle_Images) // 🔥 thêm
                 .FirstOrDefaultAsync(v => v.Id == id);
 
             if (vehicle == null)
-            {
                 return NotFound("Không tìm thấy xe");
-            }
 
             return Ok(vehicle);
         }
 
-        // =========================================
-        // GET: api/vehicle/available
-        // Lấy danh sách xe Available
-        // =========================================
+        // ================= GET AVAILABLE =================
         [HttpGet("available")]
         public async Task<ActionResult<IEnumerable<Vehicle>>> GetAvailableVehicles()
         {
             var vehicles = await _context.Vehicles
                 .Include(v => v.Branch)
+                .Include(v => v.VehicleType)
                 .Where(v => v.status == "Available")
                 .ToListAsync();
 
             return Ok(vehicles);
         }
 
-        // =========================================
-        // POST: api/vehicle
-        // Thêm xe mới
-        // =========================================
+        // ================= CREATE =================
         [HttpPost]
         public async Task<ActionResult> CreateVehicle(Vehicle vehicle)
         {
-            // Kiểm tra trùng biển số
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            vehicle.license_plate = vehicle.license_plate?.Trim().ToUpper();
+            vehicle.status = vehicle.status?.Trim();
+
+            // validate engine
+            if (vehicle.engine_capacity <= 0)
+                return BadRequest("Dung tích xe phải > 0");
+
+            // validate price
+            if (vehicle.price_per_hour < 0 || vehicle.price_per_day < 0)
+                return BadRequest("Giá không hợp lệ");
+
+            // check trùng biển số
             var exists = await _context.Vehicles
                 .AnyAsync(v => v.license_plate == vehicle.license_plate);
 
             if (exists)
-            {
                 return BadRequest("Biển số đã tồn tại");
-            }
 
-            // Kiểm tra Branch tồn tại
+            // check branch
             var branchExists = await _context.Branches
                 .AnyAsync(b => b.id == vehicle.branch_id);
 
             if (!branchExists)
-            {
                 return BadRequest("Chi nhánh không tồn tại");
-            }
 
-            // Default status
+            // 🔥 check VehicleType
+            var typeExists = await _context.VehicleTypes
+                .AnyAsync(t => t.id == vehicle.vehicle_type_id);
+
+            if (!typeExists)
+                return BadRequest("Loại xe không tồn tại");
+
             if (string.IsNullOrEmpty(vehicle.status))
-            {
                 vehicle.status = "Available";
-            }
 
             _context.Vehicles.Add(vehicle);
-
             await _context.SaveChangesAsync();
 
             return Ok(new
@@ -106,89 +110,80 @@ namespace thuydung484.Controllers
             });
         }
 
-        // =========================================
-        // PUT: api/vehicle/5
-        // Cập nhật xe
-        // =========================================
+        // ================= UPDATE =================
         [HttpPut("{id}")]
         public async Task<ActionResult> UpdateVehicle(int id, Vehicle vehicle)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             if (id != vehicle.Id)
-            {
                 return BadRequest("Id không khớp");
-            }
 
-            var existingVehicle =
-                await _context.Vehicles.FindAsync(id);
-
-            if (existingVehicle == null)
-            {
+            var existing = await _context.Vehicles.FindAsync(id);
+            if (existing == null)
                 return NotFound("Không tìm thấy xe");
-            }
 
-            // Kiểm tra Branch tồn tại
+            vehicle.license_plate = vehicle.license_plate?.Trim().ToUpper();
+
+            // check trùng biển số
+            var duplicate = await _context.Vehicles
+                .AnyAsync(v => v.license_plate == vehicle.license_plate && v.Id != id);
+
+            if (duplicate)
+                return BadRequest("Biển số đã tồn tại");
+
+            // check branch
             var branchExists = await _context.Branches
                 .AnyAsync(b => b.id == vehicle.branch_id);
 
             if (!branchExists)
-            {
                 return BadRequest("Chi nhánh không tồn tại");
-            }
 
-            // Update dữ liệu
-            existingVehicle.license_plate =
-                vehicle.license_plate;
+            // 🔥 check loại xe
+            var typeExists = await _context.VehicleTypes
+                .AnyAsync(t => t.id == vehicle.vehicle_type_id);
 
-            existingVehicle.type =
-                vehicle.type;
+            if (!typeExists)
+                return BadRequest("Loại xe không tồn tại");
 
-            existingVehicle.price_per_hour =
-                vehicle.price_per_hour;
+            // validate engine
+            if (vehicle.engine_capacity <= 0)
+                return BadRequest("Dung tích không hợp lệ");
 
-            existingVehicle.price_per_day =
-                vehicle.price_per_day;
-
-            existingVehicle.status =
-                vehicle.status;
-
-            existingVehicle.branch_id =
-                vehicle.branch_id;
+            // update
+            existing.name = vehicle.name;
+            existing.license_plate = vehicle.license_plate;
+            existing.engine_capacity = vehicle.engine_capacity;
+            existing.price_per_hour = vehicle.price_per_hour;
+            existing.price_per_day = vehicle.price_per_day;
+            existing.status = vehicle.status;
+            existing.branch_id = vehicle.branch_id;
+            existing.vehicle_type_id = vehicle.vehicle_type_id; // 🔥 thêm
 
             await _context.SaveChangesAsync();
 
             return Ok("Cập nhật xe thành công");
         }
 
-        // =========================================
-        // DELETE: api/vehicle/5
-        // Xóa xe
-        // Không cho xóa nếu đang được thuê
-        // =========================================
+        // ================= DELETE =================
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteVehicle(int id)
         {
-            var vehicle = await _context.Vehicles
-                .FirstOrDefaultAsync(v => v.Id == id);
+            var vehicle = await _context.Vehicles.FindAsync(id);
 
             if (vehicle == null)
-            {
                 return NotFound("Không tìm thấy xe");
-            }
 
-            // Kiểm tra xe có rental active không
-            var activeRental =
-                await _context.Rentals
+            var activeRental = await _context.Rentals
                 .FirstOrDefaultAsync(r =>
                     r.vehicle_id == id &&
                     r.status == "Active");
 
             if (activeRental != null)
-            {
                 return BadRequest("Xe đang được thuê, không thể xóa");
-            }
 
             _context.Vehicles.Remove(vehicle);
-
             await _context.SaveChangesAsync();
 
             return Ok("Xóa xe thành công");
